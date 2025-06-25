@@ -28,12 +28,10 @@ class LLMService:
         response = self.llm.invoke([HumanMessage(content=prompt)])
 
         if not response.content or response.content.strip() == 'None':
-            logger.error("LLM вернула пустой или недопустимый ответ.")
             raise LLMError("Некорректный вопрос.")
 
         logger.info("LLM вернула ответ:%s", response.content)
         try:
             return json.loads(response.content)
         except json.JSONDecodeError:
-            logger.error("LLM вернула невалидный JSON", )
             raise LLMError("Ответ LLM не является корректным JSON.")

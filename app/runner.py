@@ -25,14 +25,14 @@ def run_process():
         print("\nРезультат:\n", result)
 
     except LLMError as e:
-        logger.error(f"LLM error: {e}")
+        logger.error(f"Ошибка LLM: {e}")
         print(f"Ошибка LLM: {e}")
     except InvalidInstructionError as e:
-        logger.error(f"Instruction error: {e}")
+        logger.error(f"Ошибка инструкции: {e}")
         print(f"Ошибка инструкции: {e}")
     except KeyboardInterrupt:
         logger.warning("Прервано пользователем.")
         print("Операция прервана пользователем.")
     except Exception as e:
-        logger.exception("Неожиданная ошибка")
+        logger.exception("Критическая ошибка")
         print(f"Критическая ошибка: {e}")

@@ -16,20 +16,24 @@ class InstructionExecutor:
         "std", "min", "max", "difference_between_groups"
     }
 
+    required_fields = {
+        "filter_then_aggregate": ["filters", "metric", "target_column"],
+        "filter_then_groupby": ["filters", "groupby", "metric", "target_column"],
+        "groupby_stat": ["groupby", "metric", "target_column"],
+        "groupby_extreme": ["groupby", "metric", "target_column", "extreme"],
+        "groupby_compare": ["groupby", "target_column"],
+        "describe": ["target_column"]
+    }
+
     def execute(self, df: pd.DataFrame, instruction: dict):
+        self._validate_fields(instruction)
+
         operation = instruction.get("operation")
         filters = instruction.get("filters", {})
         groupby = instruction.get("groupby")
         metric = instruction.get("metric")
         target_column = instruction.get("target_column")
         extreme = instruction.get("extreme")
-
-
-        if operation not in self.allowed_operations:
-            raise InvalidInstructionError(f"Операция '{operation}' не поддерживается.")
-
-        if metric and metric not in self.allowed_metrics:
-            raise InvalidInstructionError(f"Метрика '{metric}' не поддерживается.")
 
         df_filtered = self._apply_filters(df, filters)
 
@@ -52,6 +56,27 @@ class InstructionExecutor:
             return df_filtered[target_column].describe()
 
         raise InvalidInstructionError("Неизвестная комбинация operation + metric.")
+
+    def _validate_fields(self, instruction: dict):
+        operation = instruction.get("operation")
+        metric = instruction.get("metric")
+
+        if operation not in self.allowed_operations:
+            raise InvalidInstructionError(f"Операция '{operation}' не поддерживается.")
+
+        if metric and metric not in self.allowed_metrics:
+            raise InvalidInstructionError(f"Метрика '{metric}' не поддерживается.")
+
+        missing = []
+        for field in self.required_fields[operation]:
+            value = instruction.get(field)
+            if value is None or value == "" or value == {}:
+                missing.append(field)
+
+        if missing:
+            raise InvalidInstructionError(
+                f"Для операции '{operation}' отсутствуют обязательные поля: {', '.join(missing)}"
+            )
 
     def _apply_filters(self, df: pd.DataFrame, filters: dict|None) -> pd.DataFrame:
         if filters is None:
