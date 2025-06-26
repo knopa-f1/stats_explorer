@@ -4,3 +4,4 @@ langchain
 langchain-openai
 pydantic_settings
 pydantic
+pytest
