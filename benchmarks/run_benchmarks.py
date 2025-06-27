@@ -19,8 +19,10 @@ def run_benchmarks():
     with open("benchmarks/cases.jsonl", encoding="utf-8") as f:
         cases = [json.loads(line) for line in f if line.strip()]
 
-    ok = 0
-    fail = 0
+    ok_instruction = 0
+    fail_instruction = 0
+    ok_result = 0
+    fail_result = 0
 
     for i, case in enumerate(cases, 1):
         logger.info("[%s] %s", i, case['question'])
@@ -34,8 +36,10 @@ def run_benchmarks():
                     logger.info("Ожидалось: %s", json.dumps(case["expected_instruction"], indent=2, ensure_ascii=False))
                     logger.info("Фактически: %s", json.dumps(instruction, indent=2, ensure_ascii=False))
                     logger.info("Diff: %s", diff)
-                    fail += 1
+                    fail_instruction += 1
                     continue
+                else:
+                    ok_instruction += 1
 
             result = executor.execute(df, instruction)
             result_str = str(result)
@@ -43,29 +47,38 @@ def run_benchmarks():
             if "expected_result" in case:
                 if result_str.strip() == str(case["expected_result"]).strip():
                     logger.info("OK")
-                    ok += 1
+                    ok_result += 1
                 else:
                     logger.error(
                         "Результат не совпадает. Ожидалось: %s, получено: %s",
                         case['expected_result'], result_str)
-                    fail += 1
+                    fail_result += 1
             elif "expected_result_contains" in case:
                 if case["expected_result_contains"] in result_str:
                     logger.info("OK")
-                    ok += 1
+                    ok_result += 1
                 else:
                     logger.error("В результате нет подстроки: '%s'", case['expected_result_contains'])
                     logger.info("Результат: %s", result_str)
-                    fail += 1
+                    fail_result += 1
             else:
                 logger.warning("Нет заданного критерия сравнения результата.")
-                fail += 1
+                fail_result += 1
 
         except Exception as e:
             logger.exception("Ошибка %s", e)
-            fail += 1
+            fail_instruction += 1
+            fail_result += 1
 
-    print(f"\nИтог: {ok} OK / {fail} FAIL / {ok + fail} Total")
+    logger.info("Инструкции: %s OK / %s FAIL", ok_instruction, fail_instruction)
+    logger.info("Результаты:  %s OK / %s FAIL", ok_result, fail_result)
+
+    if ok_instruction + fail_instruction > 0:
+        accuracy_instruction = ok_instruction / (ok_instruction + fail_instruction) * 100
+        logger.info("Instruction Accuracy: %.2f%%", accuracy_instruction)
+    if ok_result + fail_result > 0:
+        accuracy_result = ok_result / (ok_result + fail_result) * 100
+        logger.info("Execution Accuracy: %.2f%%", accuracy_result)
 
 
 if __name__ == "__main__":
