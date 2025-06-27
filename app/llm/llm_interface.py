@@ -1,17 +1,18 @@
 import json
 import logging
 
-from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
+from langchain_openai import ChatOpenAI
 
 from app.config import settings
-from app.llm.prompt_template import PROMPT_TEMPLATE
 from app.errors import LLMError
+from app.llm.prompt_template import PROMPT_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
-class LLMService:
+
+class LLMService: # pylint: disable=too-few-public-methods
     def __init__(self):
         self.llm = ChatOpenAI(
             temperature=0,

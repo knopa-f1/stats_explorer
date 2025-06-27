@@ -1,7 +1,9 @@
 import pandas as pd
+
 from app.errors import InvalidInstructionError
 
-class InstructionExecutor:
+
+class InstructionExecutor: # pylint: disable=too-few-public-methods
     allowed_operations = {
         "filter_then_aggregate",
         "filter_then_groupby",
@@ -40,19 +42,19 @@ class InstructionExecutor:
         if operation == "filter_then_aggregate":
             return self._aggregate(df, df_filtered, metric, target_column)
 
-        elif operation == "filter_then_groupby":
+        if operation == "filter_then_groupby":
             return self._groupby(df_filtered, groupby, target_column, metric)
 
-        elif operation == "groupby_compare":
+        if operation == "groupby_compare":
             return self._groupby_compare(df, groupby, target_column)
 
-        elif operation == "groupby_stat":
+        if operation == "groupby_stat":
             return self._groupby_stat(df_filtered, groupby, target_column, metric)
 
-        elif operation == "groupby_extreme":
+        if operation == "groupby_extreme":
             return self._groupby_extreme(df_filtered, groupby, target_column, metric, extreme)
 
-        elif operation == "describe":
+        if operation == "describe":
             return df_filtered[target_column].describe()
 
         raise InvalidInstructionError("Неизвестная комбинация operation + metric.")
@@ -78,7 +80,7 @@ class InstructionExecutor:
                 f"Для операции '{operation}' отсутствуют обязательные поля: {', '.join(missing)}"
             )
 
-    def _apply_filters(self, df: pd.DataFrame, filters: dict|None) -> pd.DataFrame:
+    def _apply_filters(self, df: pd.DataFrame, filters: dict | None) -> pd.DataFrame:
         if filters is None:
             return df
         for column, condition in filters.items():
